@@ -6,60 +6,85 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // --- API 请求 ---
-    if (path.startsWith('/3/')) {
-      const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      };
+    // 通用 CORS 头
+    const baseHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
 
-      if (request.method === 'OPTIONS') {
-        return new Response(null, { status: 200, headers });
-      }
+    // 处理 OPTIONS 预检
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 200, headers: baseHeaders });
+    }
 
-      try {
+    try {
+      // -------------------------------------------------------------------
+      // 📌 1. TMDb API 代理
+      // -------------------------------------------------------------------
+      if (path.startsWith('/3/')) {
         const apiKey = env.TMDB_API_KEY;
-        const reqHeaders = {};
+        const headers = {};
 
-        if (apiKey) {
-          reqHeaders['Authorization'] = `Bearer ${apiKey}`;
+        // Emby 会带 Authorization，不覆盖
+        const auth = request.headers.get("Authorization");
+        if (auth) {
+          headers["Authorization"] = auth;
+        } else if (apiKey) {
+          headers["Authorization"] = `Bearer ${apiKey}`;
         }
 
-        const tmdbUrl = TMDB_API_BASE + path + url.search;
-        const resp = await fetch(tmdbUrl);
-        const data = await resp.json();
+        const target = TMDB_API_BASE + path + url.search;
 
-        return new Response(JSON.stringify(data), {
-          status: resp.status,
-          headers,
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
-          status: 500,
-          headers,
-        });
-      }
-    }
+        const resp = await fetch(target, { headers });
+        const json = await resp.text();
 
-    // --- 图片请求 ---
-    if (path.startsWith('/t/p/')) {
-      try {
-        const tmdbUrl = TMDB_IMAGE_BASE + path + url.search;
-        const resp = await fetch(tmdbUrl);
-
-        return new Response(resp.body, {
+        return new Response(json, {
           status: resp.status,
           headers: {
-            'Content-Type': resp.headers.get('Content-Type') || 'image/jpeg',
-            'Cache-Control': 'public, max-age=86400',
-          },
+            ...baseHeaders,
+            "Content-Type": "application/json",
+          }
         });
-      } catch (err) {
-        return new Response('Image Error', { status: 500 });
       }
-    }
 
-    return new Response('Not found', { status: 404 });
+      // -------------------------------------------------------------------
+      // 📌 2. TMDb 图片代理（Emby 海报 / Fanart）
+      // -------------------------------------------------------------------
+      if (path.startsWith('/t/p/')) {
+        const target = TMDB_IMAGE_BASE + path + url.search;
+
+        // 图片必须加 UA + Referer 才不会变占位符
+        const imgResp = await fetch(target, {
+          headers: {
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://www.themoviedb.org/",
+            "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
+          }
+        });
+
+        // 返回原始图片流，保持所有 header
+        return new Response(imgResp.body, {
+          status: imgResp.status,
+          headers: {
+            ...baseHeaders,
+            "Content-Type": imgResp.headers.get("Content-Type") ?? "image/jpeg",
+            "Cache-Control": imgResp.headers.get("Cache-Control") ?? "public, max-age=604800",
+            "ETag": imgResp.headers.get("ETag") ?? "",
+            "Last-Modified": imgResp.headers.get("Last-Modified") ?? "",
+            "Content-Length": imgResp.headers.get("Content-Length") ?? "",
+          }
+        });
+      }
+
+      // 其他路径
+      return new Response("Not found", { status: 404, headers: baseHeaders });
+
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 500,
+        headers: { ...baseHeaders, "Content-Type": "application/json" }
+      });
+    }
   },
 };
