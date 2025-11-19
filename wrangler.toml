@@ -1,0 +1,13 @@
+# Worker 名称
+name = "cf-tmdb-proxy"
+
+# Worker 类型
+type = "javascript"
+
+# 兼容日期（保持最新即可）
+compatibility_date = "2025-11-19"
+
+# KV 命名空间绑定
+kv_namespaces = [
+  { binding = "CACHE_KV", id = "003efd74e6b14a7291b46b127bba7b62" }
+]
