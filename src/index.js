@@ -6,10 +6,8 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    console.log('=== B方案 - 强制使用Worker API Key ===');
-    console.log('路径:', path + url.search);
-    console.log('方法:', request.method);
-    console.log('User-Agent:', request.headers.get('user-agent') || '未知');
+    console.log('=== 图片调试模式 ===');
+    console.log('请求路径:', path + url.search);
 
     const baseHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -29,12 +27,10 @@ export default {
           'Content-Type': 'application/json'
         };
 
-        // 🚨 B方案核心：强制使用Worker的API Key，忽略插件提供的
         if (apiKey) {
           headers["Authorization"] = `Bearer ${apiKey}`;
-          console.log('🔑 强制使用Worker的API Key（B方案）');
+          console.log('🔑 使用Worker API Key');
         } else {
-          console.error('❌ Worker环境变量缺少API Key');
           return new Response(JSON.stringify({ 
             success: false, 
             status_code: 7,
@@ -45,20 +41,39 @@ export default {
           });
         }
 
-        // 检查插件是否提供了Key（仅用于日志）
-        const auth = request.headers.get("Authorization");
-        if (auth) {
-          console.log('⚠️ 插件提供了API Key，但被忽略');
-        }
-
         const targetUrl = TMDB_API_BASE + path + url.search;
-        console.log('🚀 请求TMDb:', targetUrl);
+        console.log('🚀 请求TMDb API:', targetUrl);
         
         const resp = await fetch(targetUrl, { headers });
+        const responseBody = await resp.text();
         
-        console.log('📡 TMDb响应状态:', resp.status);
+        console.log('📡 API响应状态:', resp.status);
         
-        const responseBody = await resp.arrayBuffer();
+        // 调试图片路径
+        try {
+          const data = JSON.parse(responseBody);
+          if (data.poster_path) {
+            console.log('📸 海报路径:', data.poster_path);
+            console.log('完整海报URL:', `${TMDB_IMAGE_BASE}/t/p/w500${data.poster_path}`);
+          }
+          if (data.profile_path) {
+            console.log('👤 人物图片路径:', data.profile_path);
+            console.log('完整人物URL:', `${TMDB_IMAGE_BASE}/t/p/w185${data.profile_path}`);
+          }
+          if (data.backdrop_path) {
+            console.log('🎬 背景图路径:', data.backdrop_path);
+          }
+          if (data.results && Array.isArray(data.results)) {
+            data.results.forEach((item, index) => {
+              if (item.poster_path) {
+                console.log(`🎞️ 结果${index}海报:`, item.poster_path);
+              }
+            });
+          }
+        } catch (e) {
+          console.log('解析响应数据时出错:', e.message);
+        }
+        
         return new Response(responseBody, {
           status: resp.status,
           headers: {
@@ -69,25 +84,41 @@ export default {
       }
 
       if (path.startsWith('/t/p/')) {
-        console.log('🖼️ 图片请求:', path);
+        console.log('🖼️ 图片请求详情:');
+        console.log('路径:', path);
+        console.log('查询参数:', url.search);
+        
         const targetUrl = TMDB_IMAGE_BASE + path + url.search;
+        console.log('完整图片URL:', targetUrl);
+        
         const resp = await fetch(targetUrl, {
           headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Referer': 'https://www.themoviedb.org/'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://www.themoviedb.org/',
+            'Accept': 'image/webp,image/apng,image/*,*/*'
           }
         });
         
+        console.log('图片响应状态:', resp.status);
+        console.log('内容类型:', resp.headers.get('content-type'));
+        console.log('内容长度:', resp.headers.get('content-length'));
+        
         return new Response(resp.body, {
           status: resp.status,
-          headers: baseHeaders
+          headers: {
+            ...baseHeaders,
+            'Content-Type': resp.headers.get('Content-Type') || 'image/jpeg',
+            'Cache-Control': 'public, max-age=86400'
+          }
         });
       }
 
       return new Response(JSON.stringify({ 
-        message: 'TMDB代理Worker - B方案',
-        warning: '此方案强制使用Worker的API Key，可能存在合规风险',
-        usage: '访问 /3/movie/550?language=zh-CN 测试'
+        message: 'TMDB代理Worker - 调试模式',
+        endpoints: {
+          api: '/3/movie/550?language=zh-CN',
+          image: '/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg'
+        }
       }), {
         headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
       });
@@ -101,4 +132,3 @@ export default {
     }
   }
 }
-有节目数据 但海报图片人物图片都是占位图
