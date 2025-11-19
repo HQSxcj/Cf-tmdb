@@ -15,20 +15,16 @@ export default {
       const url = new URL(request.url);
       const path = url.pathname;
 
-      // 确保路径以 /images/ 开头
-      if (!path.startsWith('/images/')) {
+      // 必须是 /t/p/... 的 TMDb 图片路径
+      if (!path.startsWith('/t/p/')) {
         return new Response('Not found', { status: 404, headers });
       }
 
-      // 转发到 TMDb 图片服务器
-      // /images/w500/abcd.jpg -> https://image.tmdb.org/t/p/w500/abcd.jpg
-      const tmdbPath = path.replace('/images/', '/');
-      const tmdbUrl = 'https://image.tmdb.org/t/p' + tmdbPath;
+      const tmdbUrl = 'https://image.tmdb.org' + path;
 
       const resp = await fetch(tmdbUrl);
       const arrayBuffer = await resp.arrayBuffer();
 
-      // 返回图片流
       return new Response(arrayBuffer, {
         status: resp.status,
         headers: {
