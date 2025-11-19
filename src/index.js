@@ -1,34 +1,32 @@
 const TMDB_API_BASE = 'https://api.themoviedb.org';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org';
-const TMDB_API_BASE = 'https://api.themoviedb.org';
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org';
 
-// 存储最近的请求日志（内存中）
+// 存储日志的全局变量
 let requestLogs = [];
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
     const now = new Date().toISOString();
 
-    // 记录请求到内存
+    // 记录请求
     const logEntry = {
       time: now,
       method: request.method,
       path: path + url.search,
-      userAgent: request.headers.get('user-agent') || 'unknown',
-      referer: request.headers.get('referer') || 'direct',
-      isEmby: (request.headers.get('user-agent') || '').includes('Emby'),
-      hasAuth: !!request.headers.get('authorization')
+      userAgent: (request.headers.get('user-agent') || 'unknown').substring(0, 50),
+      isEmby: (request.headers.get('user-agent') || '').includes('Emby')
     };
     
-    // 添加到日志数组（最多保存50条）
+    // 添加到日志数组
     requestLogs.unshift(logEntry);
-    if (requestLogs.length > 50) requestLogs.pop();
+    if (requestLogs.length > 30) {
+      requestLogs = requestLogs.slice(0, 30);
+    }
     
-    // 同时输出到控制台
-    console.log(`[${now}] ${request.method} ${path}${url.search} - Emby: ${logEntry.isEmby} - Auth: ${logEntry.hasAuth}`);
+    // 输出到控制台
+    console.log(`${now} - ${request.method} ${path} - Emby: ${logEntry.isEmby}`);
 
     const baseHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -36,62 +34,60 @@ export default {
       'Access-Control-Allow-Headers': '*',
     };
 
+    // 处理 OPTIONS 请求
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: baseHeaders });
     }
 
     try {
-      // -------------------------------------------------------------------
-      // 📌 1. 日志查看页面
-      // -------------------------------------------------------------------
+      // 日志查看页面
       if (path === '/logs' || path === '/debug') {
-        const embyRequests = requestLogs.filter(log => log.isEmby);
-        const apiRequests = requestLogs.filter(log => log.path.startsWith('/3/'));
+        const embyCount = requestLogs.filter(log => log.isEmby).length;
+        const apiCount = requestLogs.filter(log => log.path.startsWith('/3/')).length;
+        const embyApiCount = requestLogs.filter(log => log.isEmby && log.path.startsWith('/3/')).length;
         
-        const debugInfo = {
+        const logInfo = {
           summary: {
             total_requests: requestLogs.length,
-            emby_requests: embyRequests.length,
-            api_requests: apiRequests.length,
-            image_requests: requestLogs.filter(log => log.path.startsWith('/t/p/')).length,
-            last_emby_request: embyRequests[0] || '无'
+            emby_requests: embyCount,
+            api_requests: apiCount,
+            emby_api_requests: embyApiCount,
+            status: embyApiCount > 0 ? '✅ Emby配置正确' : '❌ Emby未发送API请求'
           },
-          recent_requests: requestLogs.slice(0, 20), // 最近20条
-          config_check: {
-            correct: 'Emby应该发送API请求到 /3/ 路径',
-            issue: '如果下面没有Emby的API请求，说明Emby配置有问题'
-          },
-          emby_api_requests: apiRequests.filter(log => log.isEmby)
+          recent_requests: requestLogs.slice(0, 10)
         };
         
-        return new Response(JSON.stringify(debugInfo, null, 2), {
+        return new Response(JSON.stringify(logInfo, null, 2), {
           headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
         });
       }
 
-      // -------------------------------------------------------------------
-      // 📌 2. API 代理
-      // -------------------------------------------------------------------
+      // API 代理
       if (path.startsWith('/3/')) {
-        console.log(`🎯 处理API请求: ${path} - 来自: ${logEntry.isEmby ? 'Emby' : '浏览器'}`);
+        console.log(`API请求: ${path} - 来自Emby: ${logEntry.isEmby}`);
         
         const apiKey = env.TMDB_API_KEY;
-        const headers = { 'Accept': 'application/json' };
+        const headers = { 
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        };
 
+        // 检查认证
         const auth = request.headers.get("Authorization");
         if (auth) {
           headers["Authorization"] = auth;
-          console.log('❌ Emby配置错误: 提供了API密钥');
+          console.log('Emby提供了API密钥');
         } else if (apiKey) {
           headers["Authorization"] = `Bearer ${apiKey}`;
-          console.log('✅ 使用Worker的API密钥');
+          console.log('使用Worker的API密钥');
         }
 
         const targetUrl = TMDB_API_BASE + path + url.search;
         const resp = await fetch(targetUrl, { headers });
         
-        console.log(`📡 TMDb响应: ${resp.status}`);
+        console.log(`TMDb响应状态: ${resp.status}`);
         
+        // 直接返回原始响应
         const responseBody = await resp.arrayBuffer();
         return new Response(responseBody, {
           status: resp.status,
@@ -102,11 +98,9 @@ export default {
         });
       }
 
-      // -------------------------------------------------------------------
-      // 📌 3. 图片代理
-      // -------------------------------------------------------------------
+      // 图片代理
       if (path.startsWith('/t/p/')) {
-        console.log(`🖼️ 图片请求: ${path}`);
+        console.log(`图片请求: ${path}`);
         const targetUrl = TMDB_IMAGE_BASE + path + url.search;
         const resp = await fetch(targetUrl, {
           headers: {
@@ -121,206 +115,21 @@ export default {
         });
       }
 
-      // -------------------------------------------------------------------
-      // 📌 4. 主页 - 显示使用说明
-      // -------------------------------------------------------------------
-      if (path === '/' || path === '/health') {
-        const helpInfo = {
-          message: 'TMDB代理Worker - 带日志调试版',
-          endpoints: {
-            logs: '/logs - 查看请求日志',
-            api_test: '/3/movie/1165656?language=zh-CN - 测试电影API',
-            image_test: '/t/p/w500/rhc3ALgQ77kzHu8Z2X3hrFbEvTj.jpg - 测试图片',
-            diagnose: '在Emby中刷新电影元数据，然后查看 /logs'
-          },
-          current_time: now
-        };
-        
-        return new Response(JSON.stringify(helpInfo, null, 2), {
-          headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
-        });
-      }
-
+      // 主页
       return new Response(JSON.stringify({ 
-        error: '路径不存在',
-        available_paths: ['/', '/logs', '/3/*', '/t/p/*']
-      }), {
-        status: 404,
-        headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
-      });
-
-    } catch (err) {
-      console.error('💥 错误:', err.message);
-      return new Response(JSON.stringify({ error: err.message }), {
-        status: 500,
-        headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
-      });
-    }
-  }
-}
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    // 🚨 关键诊断日志
-    console.log('=== 🔍 EMBY 诊断请求 ===');
-    console.log('时间:', new Date().toISOString());
-    console.log('路径:', path);
-    console.log('参数:', url.search);
-    console.log('方法:', request.method);
-    console.log('User-Agent:', request.headers.get('user-agent') || '未知');
-    console.log('来源:', request.headers.get('referer') || '直接访问');
-    console.log('Authorization头:', request.headers.get('authorization') ? '有' : '无');
-    console.log('========================');
-
-    const baseHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS, HEAD, POST',
-      'Access-Control-Allow-Headers': '*',
-    };
-
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: baseHeaders });
-    }
-
-    try {
-      // -------------------------------------------------------------------
-      // 📌 1. API 代理 - 重点诊断
-      // -------------------------------------------------------------------
-      if (path.startsWith('/3/')) {
-        console.log('🎯 识别为 API 请求，开始处理...');
-        
-        const apiKey = env.TMDB_API_KEY;
-        const headers = { 'Accept': 'application/json' };
-
-        // 诊断认证情况
-        const auth = request.headers.get("Authorization");
-        if (auth) {
-          console.log('❌ 配置问题: Emby 仍然提供了 Authorization 头');
-          headers["Authorization"] = auth;
-        } else {
-          console.log('✅ 认证配置正确: Emby 未提供 Auth 头');
-          if (apiKey) {
-            headers["Authorization"] = `Bearer ${apiKey}`;
-            console.log('✅ 使用 Worker 的 API Key');
-          } else {
-            console.log('❌ Worker 环境变量缺少 API Key');
-          }
-        }
-
-        const targetUrl = TMDB_API_BASE + path + url.search;
-        console.log('🚀 请求 TMDb:', targetUrl);
-        
-        const resp = await fetch(targetUrl, { headers });
-        
-        console.log('📡 TMDb 响应状态:', resp.status);
-        console.log('📡 TMDb 响应文本:', resp.statusText);
-        
-        // 检查响应内容
-        const responseText = await resp.text();
-        console.log('📄 响应长度:', responseText.length, '字符');
-        
-        if (responseText.length > 0) {
-          try {
-            const jsonData = JSON.parse(responseText);
-            if (jsonData.title) {
-              console.log('✅ 成功获取电影:', jsonData.title);
-              console.log('📖 剧情简介长度:', jsonData.overview?.length || 0, '字符');
-            } else if (jsonData.status_message) {
-              console.log('❌ TMDb 错误:', jsonData.status_message);
-            }
-          } catch (e) {
-            console.log('⚠️ 响应不是有效 JSON');
-          }
-        }
-
-        return new Response(responseText, {
-          status: resp.status,
-          headers: {
-            ...baseHeaders,
-            'Content-Type': 'application/json; charset=utf-8'
-          }
-        });
-      }
-
-      // -------------------------------------------------------------------
-      // 📌 2. 图片代理
-      // -------------------------------------------------------------------
-      if (path.startsWith('/t/p/')) {
-        console.log('🖼️ 识别为图片请求');
-        const targetUrl = TMDB_IMAGE_BASE + path + url.search;
-        const resp = await fetch(targetUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Referer': 'https://www.themoviedb.org/'
-          }
-        });
-        
-        console.log('🖼️ 图片响应状态:', resp.status);
-        return new Response(resp.body, {
-          status: resp.status,
-          headers: baseHeaders
-        });
-      }
-
-      // -------------------------------------------------------------------
-      // 📌 3. 诊断页面
-      // -------------------------------------------------------------------
-      if (path === '/diagnose' || path === '/') {
-        const diagnoseInfo = {
-          status: 'running',
-          issue: '海报正常但元数据缺失 - 深度诊断',
-          possible_causes: [
-            '1. Emby 未使用此 Worker 作为 API 服务器',
-            '2. Emby 插件配置未生效',
-            '3. Emby 缓存了旧的元数据',
-            '4. 媒体库元数据下载器设置错误',
-            '5. 电影文件命名不规范，无法识别'
-          ],
-          check_steps: [
-            '确认 Emby 插件中 API 服务器设置为: https://cf.6080808.xyz',
-            '确认 API 密钥字段已清空',
-            '重启 Emby 服务',
-            '检查媒体库的元数据下载器设置',
-            '尝试手动识别电影'
-          ],
-          test_urls: {
-            health: 'https://cf.6080808.xyz/',
-            movie_test: 'https://cf.6080808.xyz/3/movie/1165656?language=zh-CN',
-            image_test: 'https://cf.6080808.xyz/t/p/w500/rhc3ALgQ77kzHu8Z2X3hrFbEvTj.jpg'
-          },
-          timestamp: new Date().toISOString()
-        };
-        
-        return new Response(JSON.stringify(diagnoseInfo, null, 2), {
-          headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
-        });
-      }
-
-      // -------------------------------------------------------------------
-      // 📌 4. 健康检查
-      // -------------------------------------------------------------------
-      if (path === '/health') {
-        return new Response(JSON.stringify({ 
-          status: 'healthy',
-          message: '诊断 Worker 运行正常',
-          timestamp: new Date().toISOString()
-        }), {
-          headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
-        });
-      }
-
-      return new Response(JSON.stringify({ 
-        message: 'TMDB Proxy Worker - 诊断版',
-        usage: '访问 /diagnose 获取诊断信息',
-        available_endpoints: ['/3/*', '/t/p/*', '/diagnose', '/health']
+        message: 'TMDB代理Worker',
+        endpoints: {
+          logs: '/logs - 查看请求日志',
+          api_test: '/3/movie/550?language=zh-CN',
+          image_test: '/t/p/w500/rJBDuMN2FkGpFSVNSK3yPt5DLlV.jpg'
+        },
+        check_emby: '在Emby中刷新电影，然后查看 /logs'
       }), {
         headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
       });
 
     } catch (err) {
-      console.error('💥 错误:', err.message);
+      console.error('错误:', err.message);
       return new Response(JSON.stringify({ error: err.message }), {
         status: 500,
         headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
