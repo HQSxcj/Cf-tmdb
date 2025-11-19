@@ -17,41 +17,26 @@ export default {
     }
 
     try {
-      console.log('请求路径:', path);
+      console.log('🔍 收到请求:', request.method, path);
 
       // ======================
-      // API 请求 /api/
+      // API 请求 - 完全透明代理，不修改任何参数
       // ======================
-      if (path.startsWith('/api/')) {
-        const apiKey = env.TMDB_API_KEY;
-        if (!apiKey) {
-          return new Response(JSON.stringify({ 
-            status_code: 7, 
-            status_message: 'Invalid API key: API key not configured' 
-          }), {
-            status: 401,
-            headers: { ...baseHeaders, "Content-Type": "application/json" }
-          });
-        }
-
-        // 构建API路径：去掉 /api 前缀
-        const apiPath = path.replace('/api', '');
+      if (path.startsWith('/3/') || path === '/3') {
+        const apiPath = path.replace('/3', '') || '';
         const targetUrl = `${TMDB_API_BASE}${apiPath}${url.search}`;
         
-        console.log('API请求URL:', targetUrl);
+        console.log('🚀 转发 API 请求到:', targetUrl);
 
-        // 添加API key到查询参数
-        const targetUrlWithKey = new URL(targetUrl);
-        targetUrlWithKey.searchParams.set('api_key', apiKey);
-
-        const resp = await fetch(targetUrlWithKey.toString(), {
+        const resp = await fetch(targetUrl, {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0'
           }
         });
 
-        console.log('API响应状态:', resp.status);
+        console.log('📨 API 响应状态:', resp.status);
 
         return new Response(resp.body, {
           status: resp.status,
@@ -63,14 +48,13 @@ export default {
       }
 
       // ======================
-      // 图片请求 /img/
+      // 图片请求 - 完全透明代理
       // ======================
-      if (path.startsWith('/img/')) {
-        // 构建图片路径：/img/w500/abc.jpg -> /t/p/w500/abc.jpg
-        const imgPath = path.replace('/img', '');
+      if (path.startsWith('/t/p/')) {
+        const imgPath = path.replace('/t/p', '');
         const targetUrl = `${TMDB_IMAGE_BASE}${imgPath}${url.search}`;
         
-        console.log('图片请求URL:', targetUrl);
+        console.log('🖼️ 转发图片请求到:', targetUrl);
 
         const resp = await fetch(targetUrl, {
           headers: { 
@@ -79,21 +63,11 @@ export default {
           }
         });
 
-        console.log('图片响应状态:', resp.status);
-
-        if (!resp.ok) {
-          return new Response(JSON.stringify({ error: 'Image not found' }), {
-            status: 404,
-            headers: { ...baseHeaders, 'Content-Type': 'application/json' }
-          });
-        }
+        console.log('📨 图片响应状态:', resp.status);
 
         const newHeaders = new Headers(baseHeaders);
         resp.headers.forEach((v, k) => {
-          // 保留重要的图片头信息
-          if (['content-type', 'content-length', 'cache-control', 'etag'].includes(k.toLowerCase())) {
-            newHeaders.set(k, v);
-          }
+          newHeaders.set(k, v);
         });
 
         return new Response(resp.body, { 
@@ -102,22 +76,23 @@ export default {
         });
       }
 
-      // 默认响应 - 提供使用说明
+      // 默认响应
       return new Response(JSON.stringify({ 
-        message: 'TMDB Proxy Worker',
-        usage: {
-          api: 'GET /api/movie/550',
-          image: 'GET /img/w500/abc123.jpg'
+        message: 'TMDB Pure Proxy Worker',
+        note: '纯网络代理，API Key 由客户端自行管理',
+        endpoints: {
+          api: '/3/...?api_key=YOUR_KEY',
+          image: '/t/p/...'
         }
       }), {
         headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
       });
 
     } catch (err) {
-      console.error('Worker错误:', err);
+      console.error('❌ Worker错误:', err);
       return new Response(JSON.stringify({ 
         error: 'Internal Server Error',
-        message: err.message 
+        message: err.message
       }), {
         status: 500,
         headers: { ...baseHeaders, 'Content-Type': 'application/json; charset=utf-8' }
