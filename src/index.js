@@ -26,7 +26,7 @@ export default {
 
     try {
       // -------------------------------------------------------------------
-      // 📌 1. TMDb API 代理
+      // 📌 1. TMDb API 代理 (/3/ 路径)
       // -------------------------------------------------------------------
       if (path.startsWith('/3/')) {
         const apiKey = env.TMDB_API_KEY;
@@ -78,14 +78,18 @@ export default {
       }
 
       // -------------------------------------------------------------------
-      // 📌 2. TMDb 图片代理（Emby 海报 / Fanart）
+      // 📌 2. TMDb 图片代理（支持所有图片类型）
       // -------------------------------------------------------------------
       if (path.startsWith('/t/p/')) {
         const targetUrl = TMDB_IMAGE_BASE + path + url.search;
 
+        // 记录图片类型（用于调试）
+        const imageType = getImageType(path);
+        console.log(`Processing ${imageType} image: ${path}`);
+
         const imgResp = await fetch(targetUrl, {
           headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
             "Referer": "https://www.themoviedb.org/",
             "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
           },
@@ -97,6 +101,7 @@ export default {
         });
 
         if (!imgResp.ok) {
+          console.log(`Image not found: ${path}, Status: ${imgResp.status}`);
           return new Response("Image not found", { 
             status: 404, 
             headers: baseHeaders 
@@ -110,7 +115,7 @@ export default {
           "Cache-Control": "public, max-age=604800, immutable", // 图片可长期缓存
         };
 
-        // 可选：传递更多原始头
+        // 传递更多原始头
         const etag = imgResp.headers.get("ETag");
         if (etag) imageHeaders["ETag"] = etag;
         
@@ -130,14 +135,63 @@ export default {
         return new Response(JSON.stringify({ 
           status: 'ok', 
           service: 'TMDB Proxy Worker',
+          version: '2.0',
+          features: [
+            'API Proxy (/3/*)',
+            'Image Proxy (/t/p/*) - includes posters, backdrops, actor photos',
+            'CORS Support',
+            'Cloudflare Caching'
+          ],
           timestamp: new Date().toISOString()
         }), {
           headers: { ...baseHeaders, "Content-Type": "application/json" }
         });
       }
 
+      // -------------------------------------------------------------------
+      // 📌 4. 使用说明端点
+      // -------------------------------------------------------------------
+      if (path === '/help' || path === '/info') {
+        const helpText = `
+TMDB Proxy Worker 使用说明
+
+📌 API 代理:
+  格式: /3/{endpoint}
+  示例: /3/movie/550?language=zh-CN
+  示例: /3/search/movie?query=Avengers
+
+📌 图片代理 (支持所有类型):
+  - 电影海报: /t/p/w500/poster_path.jpg
+  - 背景图: /t/p/original/backdrop_path.jpg  
+  - 演员图片: /t/p/w185/actor_profile.jpg
+  - 剧集图片: /t/p/w300/tv_poster.jpg
+
+📌 常用图片尺寸:
+  - w92, w154, w185, w342, w500, w780, original
+  - h632 (演员专用)
+
+📌 Emby 配置:
+  在元数据下载器设置中，将 TMDB API 地址改为您的 Worker 地址
+
+健康检查: /health
+本帮助: /help
+        `.trim();
+
+        return new Response(helpText, {
+          headers: { ...baseHeaders, "Content-Type": "text/plain; charset=utf-8" }
+        });
+      }
+
       // 其他路径
-      return new Response(JSON.stringify({ error: "Not found" }), {
+      return new Response(JSON.stringify({ 
+        error: "Not found",
+        available_endpoints: {
+          "api_proxy": "/3/{endpoint}",
+          "image_proxy": "/t/p/{size}/{image_path}",
+          "health_check": "/health",
+          "help": "/help"
+        }
+      }), {
         status: 404, 
         headers: { ...baseHeaders, "Content-Type": "application/json" }
       });
@@ -146,7 +200,8 @@ export default {
       console.error('Proxy Error:', err);
       return new Response(JSON.stringify({ 
         error: "Internal Server Error",
-        message: err.message 
+        message: err.message,
+        path: path
       }), {
         status: 500,
         headers: { ...baseHeaders, "Content-Type": "application/json" }
@@ -154,3 +209,13 @@ export default {
     }
   },
 };
+
+// 辅助函数：识别图片类型
+function getImageType(path) {
+  if (path.includes('/original/')) return 'original';
+  if (path.includes('/w185/') || path.includes('/h632/')) return 'actor';
+  if (path.includes('/w300/')) return 'tv';
+  if (path.includes('/w500/') || path.includes('/w780/')) return 'poster';
+  if (path.includes('/w1280/')) return 'backdrop';
+  return 'unknown';
+}
