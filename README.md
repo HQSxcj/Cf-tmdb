@@ -1,2 +1,15 @@
-# Cf-tmdb
-Cf代理Tmdb访问
+# TMDB Proxy — Cloudflare Workers 全功能代理（API + 多源图片代理）
+
+一个基于 **Cloudflare Workers** 的轻量级 TMDB 代理：  
+- ✔ 自动为 TMDB API（[The Movie Database](chatgpt://generic-entity?number=0)）添加 `TMDB_API_KEY`  
+- ✔ 多源图片代理，自动故障切换  
+- ✔ 支持 Emby / Jellyfin / Kodi / Radarr / Sonarr 等媒体服务器  
+- ✔ Cloudflare 全球加速  
+- ✔ 完全 CORS 兼容  
+- ✔ 无需传统后端服务器  
+
+适合国内环境访问 TMDB、让媒体服务器能正常抓取图片与元数据。
+
+---
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
