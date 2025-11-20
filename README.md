@@ -59,7 +59,13 @@
 -  1.托管域名到couldflare
 -  2.点击workers 和 pages → 创建应用程序 → 从 Hello World 开始 开始使用 → Worker名称 随意填 → 部署 → 找到 编辑代码 → 把下面的代码 复制替换掉 workers.js的代码 → 右上角 → 部署，等屏幕下方出现绿色就部署成功 → 接下来请看 本页使用说明的 → 3 → 4 → 5
 
-```
+# TMDB Proxy
+
+A Cloudflare Worker that proxies requests to TMDB API and image services.
+
+## Usage
+
+```javascript:worker.js
 /**
  * Cloudflare Workers - TMDB Proxy
  */
@@ -137,5 +143,97 @@ function needsBody(method) {
   const m = method.toUpperCase();
   return m !== 'GET' && m !== 'HEAD';
 }
-
 ```
+
+<button onclick="copyCode()">Copy Code</button>
+
+<script>
+function copyCode() {
+  const code = `/**
+ * Cloudflare Workers - TMDB Proxy
+ */
+
+const API_ORIGIN = 'https://api.themoviedb.org';
+const IMAGE_ORIGIN = 'https://image.tmdb.org';
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    const { pathname, search } = url;
+
+    if (pathname.startsWith('/3/') || pathname.startsWith('/4/')) {
+      const target = \`\${API_ORIGIN}\${pathname}\${search}\`;
+      return proxy(request, target);
+    }
+
+    if (pathname.startsWith('/t/p/')) {
+      const target = \`\${IMAGE_ORIGIN}\${pathname}\${search}\`;
+      return proxy(request, target);
+    }
+
+    return new Response('OK: use /3/... or /4/... for API, /t/p/... for images', {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
+  }
+};
+
+async function proxy(incomingRequest, targetUrl) {
+  const hopByHop = new Set([
+    'connection',
+    'keep-alive',
+    'transfer-encoding',
+    'proxy-connection',
+    'upgrade',
+    'proxy-authenticate',
+    'proxy-authorization',
+    'te',
+    'trailers'
+  ]);
+
+  const reqHeaders = new Headers();
+  for (const [k, v] of incomingRequest.headers) {
+    if (!hopByHop.has(k.toLowerCase()) && k.toLowerCase() !== 'host') {
+      reqHeaders.append(k, v);
+    }
+  }
+
+  const isImage = targetUrl.startsWith(IMAGE_ORIGIN);
+  const init = {
+    method: incomingRequest.method,
+    headers: reqHeaders,
+    body: needsBody(incomingRequest.method) ? incomingRequest.body : undefined,
+    redirect: isImage ? 'follow' : 'manual'
+  };
+
+  const upstreamRes = await fetch(targetUrl, init);
+
+  const resHeaders = new Headers();
+  for (const [k, v] of upstreamRes.headers) {
+    if (!hopByHop.has(k.toLowerCase())) {
+      resHeaders.append(k, v);
+    }
+  }
+
+  return new Response(upstreamRes.body, {
+    status: upstreamRes.status,
+    statusText: upstreamRes.statusText,
+    headers: resHeaders
+  });
+}
+
+function needsBody(method) {
+  const m = method.toUpperCase();
+  return m !== 'GET' && m !== 'HEAD';
+}`;
+
+  navigator.clipboard.writeText(code).then(() => {
+    const button = document.querySelector('button');
+    const originalText = button.textContent;
+    button.textContent = 'Copied!';
+    setTimeout(() => {
+      button.textContent = originalText;
+    }, 2000);
+  });
+}
+</script>
