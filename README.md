@@ -20,11 +20,11 @@
 
 ## 功能特点
 
-- ✅ 自动为 TMDB API 代理（[申请 TMDB_API_KEY](https://www.themoviedb.org/settings/api)）  
-- ✅ 多源图片代理，自动故障切换  
+- ✅ 不需要申请tmdb api密钥
+- ✅ 多源图片代理，包含tmdb fanart.tv
 - ✅ 支持 Emby 或其他需用 `api.tmdb.org` 和 `image.tmdb.org` 的工具  
   > emby使用 [神医助手](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE) 代替 TMDB 配置  
-- ✅ Cloudflare 全球加速
+- ✅ Cloudflare 全球加速 比部分机场速度更快
 
 ---
 
@@ -42,8 +42,15 @@
 
 ## 使用说明
 
-- 将生成的 Worker 自定义域地址配置到需要填api.tmdb.org和image.tmdb.org填空中，替代 TMDB 官方 API 地址。  
-- 对于 Emby 推荐使用神医助手来简化 TMDB 配置。  
--
+-  1.复制本仓库到自己仓库
+
+-  2.一键拉取创建Cf-tmdb的worker项目 （需要创建cloudflare api）
+
+-  3.添加Worker 自定义域地址，填写到需要填api.tmdb.org和image.tmdb.org填空中，替代 TMDB 官方 API 地址。  
+
+-  4.对于 Emby 推荐使用神医助手来简化 TMDB 配置。  
+
+-  5.找剧集或电影刷新元数据或者搜索图像
+
 
 ---
