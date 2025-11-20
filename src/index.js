@@ -1,6 +1,5 @@
 const TMDB_API_BASE = 'https://api.themoviedb.org/3';
 
-// 多图片源配置
 const IMAGE_SOURCES = [
   { name: 'tmdb-primary', base: 'https://image.tmdb.org/t/p', priority: 1 },
   { name: 'tmdb-backup1', base: 'https://www.themoviedb.org/t/p', priority: 2 },
@@ -23,12 +22,10 @@ export default {
     }
 
     try {
-      // API 请求 - 自动添加 API Key
       if (path.startsWith('/3/')) {
         let targetUrl = `${TMDB_API_BASE}${path.substring(2)}`;
         const searchParams = new URLSearchParams(url.search);
         
-        // 自动添加 API Key
         if (!searchParams.has('api_key') && env.TMDB_API_KEY) {
           searchParams.set('api_key', env.TMDB_API_KEY);
         }
@@ -42,11 +39,9 @@ export default {
         });
       }
 
-      // 多源图片代理
       if (path.startsWith('/t/p/')) {
         const imagePath = path.substring('/t/p/'.length);
         
-        // 尝试所有图片源
         for (const source of IMAGE_SOURCES.sort((a, b) => a.priority - b.priority)) {
           try {
             const targetUrl = `${source.base}/${imagePath}`;
@@ -65,11 +60,11 @@ export default {
               return new Response(resp.body, { status: 200, headers });
             }
           } catch (err) {
-            continue; // 尝试下一个源
+            continue;
           }
         }
         
-        return new Response(JSON.stringify({ error: '图片在所有源中都不可用' }), {
+        return new Response(JSON.stringify({ error: 'Image not available from any source' }), {
           status: 404,
           headers: { ...baseHeaders, 'Content-Type': 'application/json' }
         });
@@ -77,7 +72,7 @@ export default {
 
       return new Response(JSON.stringify({ 
         message: 'TMDB Proxy',
-        status: '需要配置 TMDB_API_KEY 环境变量'
+        status: 'TMDB_API_KEY environment variable required'
       }), {
         headers: { ...baseHeaders, 'Content-Type': 'application/json' }
       });
