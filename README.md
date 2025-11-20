@@ -44,7 +44,7 @@
 
 -  1.复制本仓库到自己仓库
 
--  2.一键拉取创建Cf-tmdb的worker项目 （需要创建cloudflare api）
+-  2.一键拉取创建Cf-tmdb的worker项目 （需要创建 CLOUDFLARE_API_TOKEN  填入复制本仓库后 → Settings → Secrets and variables → Actions → New repository secret →Name填  CLOUDFLARE_API_TOKEN Secret填 复制的令牌）
 
 -  3.添加Worker 自定义域地址，填写到需要填api.tmdb.org和image.tmdb.org填空中，替代 TMDB 官方 API 地址。  
 
