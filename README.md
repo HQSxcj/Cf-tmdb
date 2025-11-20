@@ -24,7 +24,7 @@
 
 2. **一键部署 Workers 项目**  
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://developers.cloudflare.com/fundamentals/api/get-started/create-token)  
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
 
 > ⚠️ 注意：部署前请先生成 **Cloudflare API Token**，点击按钮会跳转到创建页面。
 
