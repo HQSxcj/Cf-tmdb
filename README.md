@@ -11,5 +11,6 @@
 适合国内环境访问 TMDB、让媒体服务器能正常抓取图片与元数据。
 
 ---
+[复制本仓库（Fork）](https://github.com/HQSxcj/Cf-tmdb/fork)后，点击下方按钮一键部署workers项目
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
