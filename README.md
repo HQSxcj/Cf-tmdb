@@ -9,6 +9,7 @@
 1. **域名托管到 Cloudflare**  
    - 需要有一个域名，并将其 DNS 托管到 Cloudflare  
    - [点击前往 Cloudflare 官网](https://www.cloudflare.com/)  
+   - 创建 CLOUDFLARE_API_TOKEN 在主页右上角 → 个人简介 → 配置文件 → api令牌 → 创建令牌 → 选择使用模板（编辑Couldflare Workers） → 权限 默认不改 → 账户资源（包括-你的账户）→ 区域资源（包括-账户所有区域-账户） → 继续以显示摘要 → 创建令牌
 
 
 2. **Emby 媒体服务器配置**  
@@ -46,7 +47,7 @@
 
 -  2.一键拉取创建Cf-tmdb的worker项目 （需要创建 CLOUDFLARE_API_TOKEN  填入复制本仓库后 → Settings → Secrets and variables → Actions → New repository secret →Name填  CLOUDFLARE_API_TOKEN Secret填 复制的令牌）
 
--  3.添加Worker 自定义域地址，填写到需要填api.tmdb.org和image.tmdb.org填空中，替代 TMDB 官方 API 地址。  
+-  3.添加Worker 自定义域地址，（进入此worker项目主页 → 设置 → 域与路由 → 添加 → 自定义域 → 你托管域名的子域名 例如:abc.com 子域名可以 tmdb.abc.com → 添加域 自定义域名就是 https://tmdb.abc.com )填写到需要填api.tmdb.org和image.tmdb.org填空中，替代 TMDB 官方 API 地址。  
 
 -  4.对于 Emby 推荐使用神医助手来简化 TMDB 配置。  
 
