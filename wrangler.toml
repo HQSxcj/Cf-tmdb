@@ -1,15 +1,5 @@
 name = "cf-tmdb"
 compatibility_date = "2025-11-19"
 
-# KV 命名空间绑定（API Worker 需要）
-kv_namespaces = [
-  { binding = "CACHE_KV", id = "003efd74e6b14a7291b46b127bba7b62" }
-]
-
 # 默认 Worker 入口文件（API Worker）
 main = "src/index.js"
-
-# 图片 Worker 环境
-[env.images]
-name = "cf-tmdb-images"
-main = "src/images-worker.js"
