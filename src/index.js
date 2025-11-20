@@ -1,87 +1,86 @@
-const TMDB_API_BASE = 'https://api.themoviedb.org/3';
+/**
+ * Cloudflare Workers - TMDB 
 
-const IMAGE_SOURCES = [
-  { name: 'tmdb-primary', base: 'https://image.tmdb.org/t/p', priority: 1 },
-  { name: 'tmdb-backup1', base: 'https://www.themoviedb.org/t/p', priority: 2 },
-  { name: 'tmdb-backup2', base: 'https://media.themoviedb.org/t/p', priority: 3 },
-];
+const API_ORIGIN = 'https://api.themoviedb.org';
+const IMAGE_ORIGIN = 'https://image.tmdb.org';
 
 export default {
-  async fetch(request, env) {
+  async fetch(request) {
     const url = new URL(request.url);
-    const path = url.pathname;
+    const { pathname, search } = url;
 
-    const baseHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS, HEAD',
-      'Access-Control-Allow-Headers': '*',
-    };
-
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: baseHeaders });
+    // 仅针对 TMDB 规范路径做透明转发
+    if (pathname.startsWith('/3/') || pathname.startsWith('/4/')) {
+      const target = `${API_ORIGIN}${pathname}${search}`;
+      return proxy(request, target);
     }
 
-    try {
-      if (path.startsWith('/3/')) {
-        let targetUrl = `${TMDB_API_BASE}${path.substring(2)}`;
-        const searchParams = new URLSearchParams(url.search);
-        
-        if (!searchParams.has('api_key') && env.TMDB_API_KEY) {
-          searchParams.set('api_key', env.TMDB_API_KEY);
-        }
-        
-        targetUrl = `${targetUrl}?${searchParams.toString()}`;
-        
-        const resp = await fetch(targetUrl);
-        return new Response(resp.body, {
-          status: resp.status,
-          headers: { ...baseHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+    if (pathname.startsWith('/t/p/')) {
+      const target = `${IMAGE_ORIGIN}${pathname}${search}`;
+      return proxy(request, target);
+    }
 
-      if (path.startsWith('/t/p/')) {
-        const imagePath = path.substring('/t/p/'.length);
-        
-        for (const source of IMAGE_SOURCES.sort((a, b) => a.priority - b.priority)) {
-          try {
-            const targetUrl = `${source.base}/${imagePath}`;
-            const resp = await fetch(targetUrl, {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'image/*,*/*',
-                'Referer': 'https://www.themoviedb.org/',
-              }
-            });
+    // 其它路径返回简单说明，避免误用
+    return new Response('OK: use /3/... or /4/... for API, /t/p/... for images', {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
+  }
+};
 
-            if (resp.status === 200) {
-              const headers = new Headers(baseHeaders);
-              headers.set('Content-Type', resp.headers.get('content-type') || 'image/jpeg');
-              headers.set('X-Image-Source', source.name);
-              return new Response(resp.body, { status: 200, headers });
-            }
-          } catch (err) {
-            continue;
-          }
-        }
-        
-        return new Response(JSON.stringify({ error: 'Image not available from any source' }), {
-          status: 404,
-          headers: { ...baseHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+/**
+ * 透明代理：最大程度保持请求与响应与官方一致
+ */
+async function proxy(incomingRequest, targetUrl) {
+  // 复制请求头（去除不该透传的 hop-by-hop 头部）
+  const hopByHop = new Set([
+    'connection',
+    'keep-alive',
+    'transfer-encoding',
+    'proxy-connection',
+    'upgrade',
+    'proxy-authenticate',
+    'proxy-authorization',
+    'te',
+    'trailers'
+  ]);
 
-      return new Response(JSON.stringify({ 
-        message: 'TMDB Proxy',
-        status: 'TMDB_API_KEY environment variable required'
-      }), {
-        headers: { ...baseHeaders, 'Content-Type': 'application/json' }
-      });
-
-    } catch (err) {
-      return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-        status: 500,
-        headers: { ...baseHeaders, 'Content-Type': 'application/json' }
-      });
+  const reqHeaders = new Headers();
+  for (const [k, v] of incomingRequest.headers) {
+    if (!hopByHop.has(k.toLowerCase()) && k.toLowerCase() !== 'host') {
+      reqHeaders.append(k, v);
     }
   }
+
+  // 构造新的上游请求，保持方法与主体
+  const isImage = targetUrl.startsWith(IMAGE_ORIGIN);
+  const init = {
+    method: incomingRequest.method,
+    headers: reqHeaders,
+    body: needsBody(incomingRequest.method) ? incomingRequest.body : undefined,
+    // 为兼容 Emby/Jellyfin 与浏览器显示，图片一律跟随重定向拿最终二进制
+    redirect: isImage ? 'follow' : 'manual'
+  };
+
+  const upstreamRes = await fetch(targetUrl, init);
+
+  // 复制上游响应头（同样去除 hop-by-hop 头）
+  const resHeaders = new Headers();
+  for (const [k, v] of upstreamRes.headers) {
+    if (!hopByHop.has(k.toLowerCase())) {
+      resHeaders.append(k, v);
+    }
+  }
+
+  // 原样返回状态码、状态文本、响应体与大多数响应头
+  return new Response(upstreamRes.body, {
+    status: upstreamRes.status,
+    statusText: upstreamRes.statusText,
+    headers: resHeaders
+  });
+}
+
+function needsBody(method) {
+  const m = method.toUpperCase();
+  return m !== 'GET' && m !== 'HEAD';
 }
