@@ -9,11 +9,11 @@
 1. **域名托管到 Cloudflare**  
    - 需要有一个域名，并将其 DNS 托管到 Cloudflare  
    - [点击前往 Cloudflare 官网](https://www.cloudflare.com/)  
-   - 创建 CLOUDFLARE_API_TOKEN 在主页右上角 → 个人简介 → 配置文件 → api令牌 → 创建令牌 → 选择使用模板（编辑Couldflare Workers） → 权限 默认不改 → 账户资源（包括-你的账户）→ 区域资源（包括-账户所有区域-账户） → 继续以显示摘要 → 创建令牌
+   - 创建 CLOUDFLARE_API_TOKEN 在主页右上角 → 个人简介 → 配置文件 → api令牌 → 创建令牌 → 选择使用模板（编辑Couldflare Workers） → 权限 默认不改 → 账户资源（包括-你的账户）→ 区域资源（包括-账户所有区域-账户） → 继续以显示摘要 → 创建令牌 令牌复制保存待粘贴到GitHub
 
 
 2. **Emby 媒体服务器配置**  
-   - 安装带有 **替代 TMDB 配置** 的 **神医助手插件**  
+   - 安装带有 **替代 TMDB 配置** 功能的**神医助手插件**  
    - [点击前往神医助手 Wiki 页面](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE)  
    - 插件可简化 TMDB API 和图片代理配置  
 
@@ -23,7 +23,7 @@
 
 - ✅ 不需要申请tmdb api密钥
 - ✅ 多源图片代理，包含tmdb fanart.tv
-- ✅ 支持 Emby 或其他需用 `api.tmdb.org` 和 `image.tmdb.org` 的工具  
+- ✅ 支持 Emby 或其他需填用 `api.tmdb.org` 和 `image.tmdb.org` 的工具  
   > emby使用 [神医助手](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE) 代替 TMDB 配置  
 - ✅ Cloudflare 全球加速 比部分机场速度更快
 
