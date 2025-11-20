@@ -10,16 +10,8 @@
    - 需要有一个域名，并将其 DNS 托管到 Cloudflare  
    - [点击前往 Cloudflare 官网](https://www.cloudflare.com/)  
 
-2. **申请 TMDB API Key**  
-   - 用于访问 TMDB API  
-   - [点击前往 TMDB 官方网站](https://www.themoviedb.org/settings/api)  
 
-3. **一键自动部署 Workers**  
-   - 部署前需创建 **CLOUDFLARE_API_TOKEN**  
-   - [点击前往创建 API Token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token)  
-   - 部署按钮会直接跳转到 Cloudflare Workers 部署页面  
-
-4. **Emby 媒体服务器配置**  
+2. **Emby 媒体服务器配置**  
    - 安装带有 **替代 TMDB 配置** 的 **神医助手插件**  
    - [点击前往神医助手 Wiki 页面](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE)  
    - 插件可简化 TMDB API 和图片代理配置  
@@ -32,7 +24,7 @@
 - ✅ 多源图片代理，自动故障切换  
 - ✅ 支持 Emby 或其他需用 `api.tmdb.org` 和 `image.tmdb.org` 的工具  
   > emby使用 [神医助手](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE) 代替 TMDB 配置  
-- ✅ Cloudflare 全球加速（⚠️ 部署需要 **CLOUDFLARE_API_TOKEN**）  
+- ✅ Cloudflare 全球加速
 
 ---
 
@@ -44,9 +36,7 @@
 
 2. **一键部署 Workers 项目**  
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
-
-> ⚠️ 注意：部署前请先生成 **Cloudflare API Token**，点击按钮会跳转到创建页面。
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git）
 
 ---
 
