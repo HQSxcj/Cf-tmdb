@@ -23,7 +23,7 @@
    - [点击前往神医助手 Wiki 页面](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE)  
    - 插件可简化 TMDB API 和图片代理配置  
 
-3. **凡事不懂多问ai助手，多积累玩法经验！！！
+3. **凡事不懂多问ai助手，多积累玩法经验！！！**
 ---
 
 ## 功能特点
@@ -46,7 +46,7 @@
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
 
-3.复制本仓库后，如需本人或利用ai编写升级worker项目功能，请修改后全局替换src/index.js 内代码内容，github 会实时自动部署至worker 运行。
+3. **复制本仓库后，如需本人或利用ai编写升级worker项目功能，请修改后全局替换src/index.js 内代码内容，github 会实时自动部署至worker 运行。**
 ---
 
 ## 使用说明
