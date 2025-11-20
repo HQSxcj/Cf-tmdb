@@ -8,8 +8,8 @@
 
 - ✅ 自动为 TMDB API 代理（[申请 TMDB_API_KEY](https://www.themoviedb.org/settings/api)）  
 - ✅ 多源图片代理，自动故障切换  
-- ✅ 支持 Emby 或其他需用 `api.tmdb.org` 和 `image.tmdb.org` 的媒体服务器  
-  > 建议使用 [神医助手](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE) 代替 TMDB 配置  
+- ✅ 支持 Emby 或其他需用 `api.tmdb.org` 和 `image.tmdb.org` 的工具  
+  > embyserver使用 [神医助手](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE) 代替 TMDB 配置  
 - ✅ Cloudflare 全球加速（⚠️ 部署需要 **CLOUDFLARE_API_TOKEN**）  
 - ✅ 完全 CORS 兼容  
 - ✅ 无需传统后端服务器  
