@@ -1,7 +1,8 @@
 # Cf-tmdb
 
 一个基于 **Cloudflare Workers** 的轻量级 TMDB 代理：  
-- ✔ 自动为 TMDB API（[The Movie Database][点击前往 TMDB API 申请页面](https://www.themoviedb.org/settings/api)添加 `TMDB_API_KEY`  
+- ✔ 自动为 TMDB API
+（[The Movie Database][点击前往 TMDB API 申请页面](https://www.themoviedb.org/settings/api)添加 `TMDB_API_KEY`  
 - ✔ 多源图片代理，自动故障切换  
 - ✔ 支持 Emby / Jellyfin / Kodi / Radarr / Sonarr 等媒体服务器  
 - ✔ Cloudflare 全球加速  
