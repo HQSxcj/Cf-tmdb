@@ -2,9 +2,7 @@
 
 一个基于 **Cloudflare Workers** 的轻量级 TMDB 代理，适合国内环境访问 TMDB，让emby不借助vpn机场节点也能正常刮削图片与元数据。因cloudflare 全球边缘节点特点 刮削拉取速度比大多数便宜机场节点快的多，具体速度自行体验感受。
 
-打个广告
-
-🌟 emby-nginx助手[ GitHub 地址 ](https://github.com/HQSxcj/emby-nginx)
+{打个广告🌟 emby-nginx助手[ GitHub 地址](https://github.com/HQSxcj/emby-nginx)}
 
 **网盘媒体服务器专家级 Nginx 工具**
 
