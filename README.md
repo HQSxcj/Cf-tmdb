@@ -1,6 +1,6 @@
 # Cf-tmdb
 
-一个基于 **Cloudflare Workers** 的轻量级 TMDB 代理，适合国内环境访问 TMDB，让emby不借助vpn机场节点也能正常刮削图片与元数据。因cloudflare 全球边缘节点特点 刮削拉取速度比大多数便宜机场节点快的多，具体速度自行体验感受。
+一个基于 **Cloudflare Workers** 的轻量级 TMDB 代理，适合国内环境访问 TMDB，让emby不借助vpn机场节点也能正常刮削图片与元数据。因cloudflare 全球边缘节点特点 刮削拉取速度比大多数便宜机场节点快的多，具体速度自行体验感受。[国内网络无法进入 GitHub 请看这](https://cftmdb.6080808.xyz)
 
 ＜ 打个广告🌟 emby-nginx助手[ GitHub 地址](https://github.com/HQSxcj/emby-nginx) ＞
 
@@ -19,11 +19,11 @@
 
 
 2. **Emby 媒体服务器配置**  
-   - 安装带有 **替代 TMDB 配置** 功能的**神医助手插件**  
+请 <a href="https://github.com/sjtuross/StrmAssistant/releases/tag/v2.0.0.30">下载</a> 安装StrmAssistant.dll **替代 TMDB 配置** 功能的**神医助手插件**。安装方式:下载 StrmAssistant.dll 文件保存在 emby容器的 plugins文件夹内和其他.dll文件放置一起 → 重启 emby生效
    - [点击前往神医助手 Wiki 页面](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE)  
-   - 插件可简化 TMDB API 和图片代理配置  
-
-3. **凡事不懂多问ai助手，多积累玩法经验！！！**
+   - emby服务器 控制台 左下角 点击 神医助手 → 元数据增强 → 打开 代替TMDB配置 → 两个代替地址填空 填入 Worker 自定义域名 → 保存 即可体验秒出海报。
+   - 目前 使用代替 TMDB 配置 在神医助手pro版属于无需收费激活版本，请觉得不错的朋友可以付费激活体验其他功能，推荐朋友学习此教程也请推荐神医助手pro激活版其他功能。
+3. **凡事不懂多问ai助手，多积累玩法经验**
 ---
 
 ## 功能特点
@@ -190,3 +190,7 @@ function needsBody(method) {
 	•	KV 存储总量 1 GB。
 	•	Key 最大 512 bytes，Value 最大 25 MB
 ### worker代理个人家庭 emby 刮削请求在免费套餐每日限制内，切勿修改请求太高。
+
+### 目前体验的优点是无魔法网络秒出海报和节目信息，缺点emby采用的是多线程同时刮削 worker项目免费套餐 跟不上emby的多线程，比高速vpn可能有些许的慢，具体需要各位自行体验。
+
+### 建议对均衡负载或者couldflare Workers 熟悉的朋友 可以研究多个workers 均衡负载 增加线程等方法。
