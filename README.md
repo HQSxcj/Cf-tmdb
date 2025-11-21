@@ -1,4 +1,3 @@
-![IMG_2078](https://github.com/user-attachments/assets/5c903d98-2eae-403e-bd42-c618ffc610c4)
 # Cf-tmdb
 
 一个基于 **Cloudflare Workers** 的轻量级 TMDB 代理，适合国内环境访问 TMDB，让emby不借助vpn机场节点也能正常刮削图片与元数据。因cloudflare 全球边缘节点特点 刮削拉取速度比大多数便宜机场节点快的多，具体速度自行体验感受。
@@ -197,3 +196,5 @@ function needsBody(method) {
 ### 目前体验的优点是无魔法网络秒出海报和节目信息，缺点emby采用的是多线程同时刮削 worker项目免费套餐 跟不上emby的多线程，比高速vpn可能有些许的慢，具体需要各位自行体验。
 
 ### 建议对均衡负载或者couldflare Workers 熟悉的朋友 可以研究多个workers 均衡负载 增加线程等方法。
+
+![IMG_2078](https://github.com/user-attachments/assets/a7218b7f-474b-4f4b-9124-d11601be7b5a)
