@@ -48,6 +48,9 @@
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
 
+[![跳转到 Vl-tmdb](https://img.shields.io/badge/跳转到-Vl--tmdb%20仓库-black?style=for-the-badge&logo=github)](https://github.com/HQSxcj/Vl-tmdb)
+
+
 3. **复制本仓库后，如需本人或利用ai编写升级worker项目功能，请修改后全局替换src/index.js 内代码内容，github 会实时自动部署至worker 运行。**
 ---
 
