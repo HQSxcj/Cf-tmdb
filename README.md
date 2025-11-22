@@ -50,26 +50,52 @@
 [![跳转到 Vl-tmdb](https://img.shields.io/badge/跳转到-Vl--tmdb%20仓库-black?style=for-the-badge&logo=github)](https://github.com/HQSxcj/Vl-tmdb)
 
 
-3. **复制本仓库后，如需本人或利用ai编写升级worker项目功能，请修改后全局替换src/index.js 内代码内容，github 会实时自动部署至worker 运行。**
----
+## 📋 必备要素
 
-## 使用说明
+1. 一个域名 - 并托管至 **Cloudflare**
+2. 一个 **GitHub** 账号 - 需要魔法网络登录申请
+3. **Emby** 里的神医助手插件 - 2.0 或 3.0 版
 
--  1.复制本仓库到自己仓库
+## 🔧 部署步骤
 
--  2.一键部署Cf-tmdb的worker项目 （需要创建 CLOUDFLARE_API_TOKEN  填入复制本仓库后 → Settings → Secrets and variables → Actions → New repository secret →Name填  CLOUDFLARE_API_TOKEN Secret填 复制的令牌）
+### 自动部署
 
--  3.添加Worker 自定义域地址，（进入此worker项目主页 → 设置 → 域与路由 → 添加 → 自定义域 → 你托管域名的子域名 例如:abc.com 子域名可以 tmdb.abc.com → 添加域 自定义域名就是 https://tmdb.abc.com )填写到需要填api.tmdb.org和image.tmdb.org填空中，替代 TMDB 官方 API 地址。  
+1. Fork 本仓库到你的 GitHub 账户  
+2. 连接 **Vercel**：  
+   - 点击上方 **Deploy to Vercel** 按钮  
+   - 授权 GitHub 账户  
+   - 选择 **CV-tmdb** 仓库  
+   - 在项目设置中，根目录选择 `project`
 
--  4.对于 Emby 推荐使用神医助手来简化 TMDB 配置。  
+3. 部署 **Cloudflare Workers**：  
+   - 点击上方 **Deploy to Cloudflare** 按钮  
+   - 创建 **Cloudflare** 账户（如没有）  
+   - 在 **Workers** 页面创建新服务  
+   - 将 `workers/src/index.js` 内容复制到 **Workers 编辑器**
 
--  5.找剧集或电影刷新元数据或者搜索图像
+4. 部署完两个项目绑定自定义域名，也就是托管在 cloudflare 的域名的子域名
+   - workers 绑定自定义域名 → worker 项目主页 → 设置 → 域和路由 
+→ 添加 → 自定义域 → 输入一个子域名 例:abc.com 子域名可: c.abc.com 点击 部署
 
-### 注意：设置好的自定义域名代理 因有 cloudflare workers 免费套餐限制，个人刮削使用完全足够，请不要分享代理自定义域名给他人使用，可推荐他人自主安装 worker 使用自己的 cloudflare worker 免费套餐
----
-## 如觉得以上太麻烦了，可以手动配置操作
--  1.托管域名到couldflare
--  2.点击workers 和 pages → 创建应用程序 → 从 Hello World 开始 开始使用 → Worker名称 随意填 → 部署 → 找到 编辑代码 → 把下面的代码 复制替换掉 workers.js的代码 → 右上角 → 部署，等屏幕下方出现绿色就部署成功 → 接下来请看 本页使用说明的 → 3 → 4 → 5
+   - vercel 绑定子域名
+
+#使用方式
+
+Emby 神医助手配置
+
+在神医助手 → 元数据增强 → 使用代替 TMDB 配置
+	•	代替 TMDB API 地址：你的 Workers 自定义域名
+	•	代替 TMDB 图像 地址：你的 Vercel 自定义域名
+
+填完后保存，重启 Emby 服务器 即可生效。
+
+#部署效果
+
+   利用cloudflare workers的快速的边缘计算去先一步匹配节目信息的json信息。
+   emby 的 tmdb 插件通过接收到的 json 信息里的图片字符串拼接出完整的图片url链接
+   返回图片url链接让 Vercel 的 cdn 优秀的图像缓存处理后一步刮削海报图片
+
+   合理利用两个网站的的项目优势去智能组合刮削，并进一步节省单个网站请求，避免触发免费范围限制→ 创建应用程序 → 从 Hello World 开始 开始使用 → Worker名称 随意填 → 部署 → 找到 编辑代码 → 把下面的代码 复制替换掉 workers.js的代码 → 右上角 → 部署，等屏幕下方出现绿色就部署成功 → 接下来请看 本页使用说明的 → 3 → 4 → 5
 
 ```javascript:worker.js
 
