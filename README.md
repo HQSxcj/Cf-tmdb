@@ -42,7 +42,7 @@
 
 ## 快速部署
 
-#  一键部署 Cf-tmdb 部署 API 代理
+#  Cf-tmdb TMDB API 代理
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
 
