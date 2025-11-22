@@ -38,7 +38,7 @@
 
 4. 部署完项目绑定自定义域名，也就是托管在 cloudflare 的域名的子域名
    - workers 绑定自定义域名 → worker 项目主页 → 设置 → 域和路由 
-→ 添加 → 自定义域 → 输入一个子域名 例:abc.com 子域名可: c.abc.com 点击 部署
+→ 添加 → 自定义域 → 输入一个子域名 例:abc.com 子域名可: cf.abc.com 点击 部署
 
 
 # 使用方式
@@ -47,9 +47,11 @@ Emby 神医助手配置
 
 在神医助手 → 元数据增强 → 使用代替 TMDB 配置
 
-	•	代替 TMDB API 地址：你的 Workers 自定义域名
+	•	代替 TMDB API 地址：Workers 自定义域名
+	例: https://cf.abc.com
 
-	•	代替 TMDB 图像 地址：你的 Vercel 自定义域名
+	•	代替 TMDB 图像 地址：Vercel 自定义域名
+	例: https://vl.abc.com
 
 填完后保存，重启 Emby 服务器 即可生效。
 
@@ -59,7 +61,7 @@ Emby 神医助手配置
    emby 的 tmdb 插件通过接收到的 json 信息里的图片字符串拼接出完整的图片url链接
    返回图片url链接让 Vercel 的 cdn 优秀的图像缓存处理后一步刮削海报图片
 
-   合理利用两个网站的的项目优势去智能组合刮削，并进一步节省单个网站请求，避免触发免费范围限制
+   充分利用两个网站的的项目优势去智能组合刮削，并进一步节省单个网站请求，避免触发免费范围限制
 
 ```javascript:worker.js
 
