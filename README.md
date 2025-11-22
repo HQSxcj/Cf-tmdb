@@ -10,50 +10,20 @@
 
 **网盘媒体服务器专家级 Nginx 工具**
 
-
-
-## 提前准备
-
-在开始部署 Cf-tmdb 之前，请先准备以下内容：
-
-1. **域名托管到 Cloudflare**  
-   - 需要有一个域名，并将其 DNS 托管到 Cloudflare  
-   - [点击前往 Cloudflare 官网](https://www.cloudflare.com/)  
-   - 创建 CLOUDFLARE_API_TOKEN 在主页右上角 → 个人简介 → 配置文件 → api令牌 → 创建令牌 → 选择使用模板（编辑Couldflare Workers） → 权限 默认不改 → 账户资源（包括-你的账户）→ 区域资源（包括-账户所有区域-账户） → 继续以显示摘要 → 创建令牌 令牌复制保存待粘贴到GitHub
-
-
-2. **Emby 媒体服务器配置**  
-请 <a href="https://github.com/sjtuross/StrmAssistant/releases/tag/v2.0.0.30">下载</a> 安装StrmAssistant.dll **替代 TMDB 配置** 功能的**神医助手插件**。安装方式:下载 StrmAssistant.dll 文件保存在 emby容器的 plugins文件夹内和其他.dll文件放置一起 → 重启 emby生效
-   - [点击前往神医助手 Wiki 页面](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE)  
-   - emby服务器 控制台 左下角 点击 神医助手 → 元数据增强 → 打开 代替TMDB配置 → 两个代替地址填空 填入 Worker 自定义域名 → 保存 即可体验秒出海报。
-   - 目前 使用代替 TMDB 配置 在神医助手pro版属于无需收费激活版本，请觉得不错的朋友可以付费激活体验其他功能，推荐朋友学习此教程也请推荐神医助手pro激活版其他功能。
-3. **凡事不懂多问ai助手，多积累玩法经验**
----
-
-## 功能特点
-
-- ✅ 不需要申请tmdb api密钥
-- ✅ 多源图片代理，包含tmdb fanart.tv
-- ✅ 支持 Emby 或其他需填用 `api.tmdb.org` 和 `image.tmdb.org` 的工具  
-  > emby使用 [神医助手](https://github.com/sjtuross/StrmAssistant/wiki/%E6%9B%BF%E4%BB%A3-TMDB-%E9%85%8D%E7%BD%AE) 代替 TMDB 配置  
-- ✅ Cloudflare 全球加速 比部分机场速度更快
-
----
-
 ## 快速部署
 
-#  Cf-tmdb TMDB API 代理
+## Cf-tmdb TMDB API 代理
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HQSxcj/Cf-tmdb.git)
 
-#  跳转至 Vl-tmdb 仓库 部署 图像 代理
+## 跳转至 Vl-tmdb 仓库 部署 图像 代理
 [![跳转到 Vl-tmdb](https://img.shields.io/badge/跳转到-Vl--tmdb%20仓库-black?style=for-the-badge&logo=github)](https://github.com/HQSxcj/Vl-tmdb)
 
 
 ## 📋 必备要素
 
 1. 一个域名 - 并托管至 **Cloudflare**
-2. 一个 **GitHub** 账号 - 需要魔法网络登录申请
+2. 一个 **GitHub** 账号 
 3. **Emby** 里的神医助手插件 - 2.0 或 3.0 版
 
 ## 🔧 部署步骤
@@ -61,23 +31,15 @@
 ### 自动部署
 
 1. Fork 本仓库到你的 GitHub 账户  
-2. 连接 **Vercel**：  
-   - 点击上方 **Deploy to Vercel** 按钮  
-   - 授权 GitHub 账户  
-   - 选择 **CV-tmdb** 仓库  
-   - 在项目设置中，根目录选择 `project`
 
-3. 部署 **Cloudflare Workers**：  
    - 点击上方 **Deploy to Cloudflare** 按钮  
    - 创建 **Cloudflare** 账户（如没有）  
    - 在 **Workers** 页面创建新服务  
-   - 将 `workers/src/index.js` 内容复制到 **Workers 编辑器**
 
-4. 部署完两个项目绑定自定义域名，也就是托管在 cloudflare 的域名的子域名
+4. 部署完项目绑定自定义域名，也就是托管在 cloudflare 的域名的子域名
    - workers 绑定自定义域名 → worker 项目主页 → 设置 → 域和路由 
 → 添加 → 自定义域 → 输入一个子域名 例:abc.com 子域名可: c.abc.com 点击 部署
 
-   - vercel 绑定子域名
 
 #使用方式
 
@@ -176,7 +138,7 @@ function needsBody(method) {
 ### 注：本仓库玩法由群友摸鱼出来，用ai助手编写代码。本仓库可随意复制，代码随意修改创作，随意利用您的想法和专业知识创作升级代码的功能，本仓库不负责解答任何问题和承担责任。
 
 ### 请注意 自主修改创作 需了解 Cloudflare Workers 的免费套餐限制，防止超过限制 被短暂限制 worker 当天请求，需第二天重置计数后才可重新请求数据。
-
+worker代理个人家庭 emby 刮削请求在免费套餐每日限制内，切勿修改请求太高
 # Cloudflare Workers 免费套餐主要限制如下：
 ⸻
 1. 请求数
@@ -219,10 +181,6 @@ function needsBody(method) {
 	•	删除和列出操作：每天各 1,000 次。
 	•	KV 存储总量 1 GB。
 	•	Key 最大 512 bytes，Value 最大 25 MB
-### worker代理个人家庭 emby 刮削请求在免费套餐每日限制内，切勿修改请求太高。
 
-### 目前体验的优点是无魔法网络秒出海报和节目信息，缺点emby采用的是多线程同时刮削 worker项目免费套餐 跟不上emby的多线程，比高速vpn可能有些许的慢，具体需要各位自行体验。
-
-### 建议对均衡负载或者couldflare Workers 熟悉的朋友 可以研究多个workers 均衡负载 增加线程等方法。
 
 ![IMG_2078](https://github.com/user-attachments/assets/a7218b7f-474b-4f4b-9124-d11601be7b5a)
