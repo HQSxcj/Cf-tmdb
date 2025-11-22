@@ -1,6 +1,8 @@
 # Cf-tmdb
 
-一个基于 **Cloudflare Workers** 的轻量级 TMDB 代理，适合国内环境访问 TMDB，让emby不借助vpn机场节点也能正常刮削图片与元数据。因cloudflare 全球边缘节点特点 刮削拉取速度比大多数便宜机场节点快的多，具体速度自行体验感受。
+通过合理利用 **Cloudflare** 和 **Vercel** 的全球边缘网络节点的免费套餐，部署代理 **TMDB** 的 `api.tmdb.org` 和 `image.tmdb.org` 两个接口的 JSON 节目信息和图片代理转发，让被屏蔽的 **Emby** 流畅恢复刮削 **TMDB** 的节目信息和节目图片。
+
+不需要借助修改 host 节点方法和魔法网络工具代理。
 
 [国内网络无法进入 GitHub 请看这](https://cftmdb.6080808.xyz)
 
