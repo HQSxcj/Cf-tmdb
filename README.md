@@ -63,6 +63,9 @@ Emby 神医助手配置
 
    充分利用两个网站的的项目优势去智能组合刮削，并进一步节省单个网站请求，避免触发免费范围限制
 
+
+
+## 手动部署单个 workers 方式，用一个仓库代码去代理两个地址，落后的玩法
 ```javascript:worker.js
 
 const API_ORIGIN = 'https://api.themoviedb.org';
